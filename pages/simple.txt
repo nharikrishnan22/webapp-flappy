@@ -1,0 +1,10 @@
+Flappy birdy!
+
+Welcome to my fantastic game which is a variant of Flappy bird.
+
+Here will be the game
+
+How to play:
+- Press SPACE to move up
+- Avoid the pipes
+- If you crash, just try again!
