@@ -33,6 +33,15 @@ jQuery("#help").on("click", function() {
   );
 });
 
+jQuery("#sharing").on("click", function (){
+  var text = "I scored " + score.toString() + " in Batman Wanders...! Can you do better!";
+  var escapedText = encodeURIComponent(text);
+  var url =
+  "https:twitter.com/share?text=" +
+  escapedText;
+  jQuery("#sharing").attr("href", url);
+});
+
 function registerScore(score) {
   console.log(score);
   console.log(highscoreList);
@@ -42,7 +51,7 @@ function registerScore(score) {
   if (score == highscoreList[0].score && score>1) {
     jQuery("#content").empty();
     playerName = prompt("You got a high score! What is your name?");
-    jQuery("#content").css('colour', 'yellow').append(
+    jQuery("#content").css('color', 'yellow').append(
       "<ul>" +
         "<li>"+ playerName + ":" + score + "<li>" +
       "</ul>");
