@@ -18,7 +18,7 @@ var weights = []; // weight variable in an array to do collision detection
 var splashDisplay; // global variable to show starting message
 var highscoreList = [];
 var gameResult = {};
-var playerName; 
+var playerName;
 
 // the Game object used by the phaser.io library
 var stateActions = { preload: preload, create: create, update: update };
@@ -49,7 +49,7 @@ function preload() {
  */
 function create() {
     backgroundmusic = game.sound.play("backgroundmusic"); // play background music
-    game.add.image(0,0,"backgroundImg"); // add the background image to the screen
+    game.add.sprite(0, 0, "backgroundImg"); // add the background image to the screen
     welcome = game.add.text(100, 350, "Welcome to my fantastic game",{font: "40px Arial", fill: "yellow"}); // welcome message
     game.add.sprite(30, 300, "playerImg");  // add balloon sprite to screen
     game.add.sprite(720, 300, "playerImg");  // add balloon sprite to screen
@@ -150,6 +150,8 @@ function gameOver() {
 
 function restart_game () {
   game.paused = false;
+  backgroundmusic.destroy();
+  game.cache.removeSound('backgroundmusic'); // completely stops current music
   game.state.restart();
   score = 0; // reset score
   gameGravity = 250; // reset gravity
