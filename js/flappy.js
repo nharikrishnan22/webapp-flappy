@@ -19,6 +19,7 @@ var splashDisplay; // global variable to show starting message
 var highscoreList = [];
 var gameResult = {};
 var playerName;
+var stars = []; // array for star bonuses
 
 // the Game object used by the phaser.io library
 var stateActions = { preload: preload, create: create, update: update };
@@ -38,10 +39,11 @@ function preload() {
   game.load.audio("backgroundmusic","../assets/Batman The Dark Knight Theme - Hans Zimmer.mp3"); // load music
   game.load.image("playerImg", "../assets/flappy_batman.png"); // make image (for player) available to the game
   game.load.image("backgroundImg", "../assets/night city.png"); // make background image available to game
-  game.load.image("pipeBlock","../assets/pipe.png"); // make image for a block of pipe available
-  game.load.image("PipeEnd","../assets/pipe-end.png"); // make image for the end of the pipe available
-  game.load.image("balloons","../assets/balloons.png"); // make image that reduces gravity to appear
-  game.load.image("weight","../assets/batman-md.png"); // make image that increases gravity to appear
+  game.load.image("pipeBlock", "../assets/pipe.png"); // make image for a block of pipe available
+  game.load.image("PipeEnd", "../assets/pipe-end.png"); // make image for the end of the pipe available
+  game.load.image("balloons", "../assets/balloons.png"); // make image that reduces gravity to appear
+  game.load.image("weight", "../assets/batman-md.png"); // make image that increases gravity to appear
+  game.load.image("star","../assets/star.png"); // make image for star bonuses to appear
   }
 
 /*
@@ -104,6 +106,7 @@ function update() {
   game.physics.arcade.overlap(player, pipes, gameOver);
 checkBonus(balloons, -50);
 checkBonus(weights, 50);
+checkBonus(stars, 0);
 }
 
 function checkBonus(bonusArray, bonusEffect) {
@@ -111,10 +114,12 @@ function checkBonus(bonusArray, bonusEffect) {
         game.physics.arcade.overlap(player, bonusArray[i], function(){
             changeGravity(bonusEffect);
             bonusArray[i].destroy();
+            changeScore();
             bonusArray.splice(i,1);
         });
       }
     }
+
 function generate () {
   var diceRoll = game.rnd.integerInRange(1,10);
   if (diceRoll == 1) {
@@ -131,12 +136,12 @@ function generate () {
 function gameOver() {
   try {
     backgroundmusic.stop(); // stop music by setting the playback position to 0
-    registerScore(score);
-    game.paused = true;
     game.add.text(50, 200, "Game over. Press the SPACEBAR to restart the game.",{font: "30px Arial", fill: "blue"});
     game.input
     .keyboard.addKey(Phaser.Keyboard.SPACEBAR)
     .onDown.add(restart_game);
+    registerScore(score);
+    game.paused = true;
   }
   catch (err) { //code to handle exception of no scoreboard in example.html
     backgroundmusic.stop(); // stop music by setting the playback position to 0
@@ -150,6 +155,7 @@ function gameOver() {
 
 function restart_game () {
   game.paused = false;
+  stars = []; // reset stars to an empty array
   backgroundmusic.destroy();
   game.cache.removeSound('backgroundmusic'); // completely stops current music
   game.state.restart();
@@ -158,8 +164,9 @@ function restart_game () {
 }
 
 function clickHandler(event) {
-    game.add.sprite(event.x, event.y, "playerImg");
-    alert(player.y);
+    game.paused = true;
+    alert('Game paused!');
+    game.paused = false;
 }
 
 function changeScore() {
@@ -195,8 +202,8 @@ function generatePipe() {
     for(y = gapStart + gapSize + pipeEndHeight; y < height; y += blockHeight) {
         addPipeBlock(width, y);
     }
-
-    changeScore();
+    y = gapStart + gapSize + pipeEndHeight;
+    addStar(width, gapStart + gapSize - (gapSize/2));
 }
 
 function addPipeBlock(x, y) {
@@ -236,4 +243,11 @@ function weight_bonus() { // function that generates weights
   weights.push(bonus);
   bonus.body.velocity.x = -200;
   bonus.body.velocity.y = game.rnd.integerInRange(60,100);
+}
+
+function addStar(x, y) { // function that displays the stars
+  var bonus = game.add.sprite(x, y, "star");
+  game.physics.arcade.enable(bonus);
+  stars.push(bonus);
+  bonus.body.velocity.x = -gameSpeed;
 }

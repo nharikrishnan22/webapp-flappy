@@ -29,6 +29,8 @@ jQuery("#help").on("click", function() {
     "<ol>" +
           "<li>" + "Press SPACE to go up" + "</li>" +
           "<li>" + "Avoid the incoming pipes" + "</li>" +
+          "<li>" + "Earn points by collecting stars" + "</li>" +
+          "<li>" + "Click the screen to pause the game" + "</li>" +
     "</ol>"
   );
 });
