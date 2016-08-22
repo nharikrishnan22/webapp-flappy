@@ -1,6 +1,6 @@
 // the scaffolding for Phaser is here (includes global variables)
 var score = 0;
-var labelScore;
+var labelScore; // used for score displaying in game
 var player;
 var pipes = []; // create an empty 'pipes' array to hold the column of pipe blocks
 var width = 790; // width of canvas
@@ -15,11 +15,30 @@ var pipeEndHeight = 25;
 var pipeEndExtraWidth = 10;
 var balloons = []; // balloons variable in an array to do collision detection
 var weights = []; // weight variable in an array to do collision detection
+var stars = []; // array for star bonuses
 var splashDisplay; // global variable to show starting message
 var highscoreList = [];
 var gameResult = {};
 var playerName;
-var stars = []; // array for star bonuses
+var modes = {
+easy: {
+    pipeInterval: 3,
+    gameSpeed: 150,
+    gameGravity: 220,
+    gapSize: 130
+  },
+normal: {
+    pipeInterval: 1.75,
+    gameSpeed: 200,
+    gameGravity: 250,
+    gapSize: 100
+  }
+};
+var easybutton; // global variable for the 'easy' setting
+var normalbutton; // global variable for the 'normal setting'
+
+
+
 
 // the Game object used by the phaser.io library
 var stateActions = { preload: preload, create: create, update: update };
@@ -44,6 +63,8 @@ function preload() {
   game.load.image("balloons", "../assets/balloons.png"); // make image that reduces gravity to appear
   game.load.image("weight", "../assets/batman-md.png"); // make image that increases gravity to appear
   game.load.image("star","../assets/star.png"); // make image for star bonuses to appear
+  game.load.image("easybutton","../assets/easy.png"); // make 'easy' setting image available to the game
+  game.load.image("normalbutton","../assets/normal.png"); // make 'normal' setting avaiable to the game
   }
 
 /*
@@ -53,25 +74,30 @@ function create() {
     backgroundmusic = game.sound.play("backgroundmusic"); // play background music
     game.add.sprite(0, 0, "backgroundImg"); // add the background image to the screen
     welcome = game.add.text(100, 350, "Welcome to my fantastic game",{font: "40px Arial", fill: "yellow"}); // welcome message
-    game.add.sprite(30, 300, "playerImg");  // add balloon sprite to screen
-    game.add.sprite(720, 300, "playerImg");  // add balloon sprite to screen
-    game.add.sprite(720, 30, "playerImg");  // add balloon sprite to screen
-    game.add.sprite(30, 30, "playerImg");  // add balloon sprite to screen
-    game.input.onDown.add(clickHandler); // tells phraser to call the function 'clickHandler'if the mouse is clicked
+    game.add.sprite(30, 300, "playerImg");  // add batman sprite to screen
+    game.add.sprite(720, 300, "playerImg");  // add batman sprite to screen
+    game.add.sprite(720, 30, "playerImg");  // add batman sprite to screen
+    game.add.sprite(30, 30, "playerImg");  // add batman sprite to screen
     labelScore = game.add.text(20, 20, "0",{font: "40px Arial", fill: "yellow"});
     player = game.add.sprite(100, 200, "playerImg"); // Initialises player to a sprite
-    player.anchor.setTo(0.5,0.5);
-    player.x = 100;
-    player.y = 200;
+    player.anchor.setTo(0.5,0.5); // set anchor property of the player - allowd player to rotate around a specified point
+    player.x = 100; // starting x position of the player
+    player.y = 200; //starting y position of the player
     game.physics.startSystem(Phaser.Physics.ARCADE); // create ARCADE Physics engine
     game.physics.arcade.enable(player); // Enable game physics for your player sprite
-    splashDisplay = game.add.text(100, 200, "Press ENTER to start, SPACEBAR to jump.",{font: "30px Arial", fill: "yellow"});
-    game.input.keyboard.addKey(Phaser.Keyboard.ENTER).onDown.add(start);
+    mainmenu = game.add.text(335, 50, "Main Menu",{font: "40px Arial", fill: "yellow"});
+    easybutton = game.add.sprite(390, 130, "easybutton");
+    easybutton.inputEnabled = true; // allow image to be clicked etc.
+    easybutton.events.onInputDown.add(easyoption, this);
+    normalbutton = game.add.sprite(390, 200, "normalbutton");
+    normalbutton.inputEnabled = true; // allow image to be clicked etc.
+    normalbutton.events.onInputDown.add(normaloption, this);
   }
 
 function start() {
+  splashDisplay.destroy();
+  game.input.onDown.add(clickHandler); // tells phraser to call the function 'clickHandler' if the mouse is clicked
   game.input.keyboard.addKey(Phaser.Keyboard.ENTER).onDown.remove(start); // code to stop the start function being called several times
-  splashDisplay.destroy(); // remove instructions from the screen
   welcome.destroy(); // remove welcome message
   player.body.gravity.y = gameGravity; // gravity acting on the player
   game.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
@@ -104,21 +130,36 @@ function update() {
     gameOver();
 }
   game.physics.arcade.overlap(player, pipes, gameOver);
-checkBonus(balloons, -50);
-checkBonus(weights, 50);
-checkBonus(stars, 0);
+checkBonus(balloons, -50, 0); // first argument - bonus type; second argument - change gravity; third argument - score change
+checkBonus(weights, 50, 0);
+checkBonus(stars, 0, 1);
+for(var i = pipes.length - 1; i >=0; i--){ // remove pipes if they go left of the screen
+  if(pipes[i].body.x < -60){
+    pipes[i].destroy();
+    pipes.splice(i, 1);
+  }
+}
 }
 
-function checkBonus(bonusArray, bonusEffect) {
+function checkBonus(bonusArray, bonusEffect, bonusScore) {
     for(var i = bonusArray.length - 1; i >= 0; i--){
-        game.physics.arcade.overlap(player, bonusArray[i], function(){
-            changeGravity(bonusEffect);
+        if(bonusArray[i].body.x < -70 || bonusArray[i].body.y < -70) {
+          bonusArray[i].destroy();
+          bonusArray.splice(i, 1);
+        } else {
+        game.physics.arcade.overlap(player,bonusArray[i], function() {
+            // destroy sprite
             bonusArray[i].destroy();
-            changeScore();
-            bonusArray.splice(i,1);
+            // remove element from array
+            bonusArray.splice(i, 1);
+            // apply the bonus effect
+            changeGravity(bonusEffect);
+            // apply the bonus score (if the bonus is a star)
+            changeScore(bonusScore);
         });
-      }
     }
+}
+}
 
 function generate () {
   var diceRoll = game.rnd.integerInRange(1,10);
@@ -153,9 +194,34 @@ function gameOver() {
   }
 }
 
+function easyoption() {
+  pipeInterval = modes.easy.pipeInterval;
+  gameSpeed = modes.easy.gameSpeed;
+  gameGravity = modes.easy.gameGravity;
+  gapSize = modes.easy.gapSize;
+  easybutton.destroy();
+  normalbutton.destroy();
+  mainmenu.destroy();
+  splashDisplay = game.add.text(100, 200, "Press ENTER to start, SPACEBAR to jump.",{font: "30px Arial", fill: "yellow"});
+  game.input.keyboard.addKey(Phaser.Keyboard.ENTER).onDown.add(start);
+}
+
+function normaloption() {
+  pipeInterval = modes.normal.pipeInterval;
+  gameSpeed = modes.normal.gameSpeed;
+  gameGravity = modes.normal.gameGravity;
+  gapSize = modes.normal.gapSize;
+  easybutton.destroy();
+  normalbutton.destroy();
+  mainmenu.destroy();
+  splashDisplay = game.add.text(100, 200, "Press ENTER to start, SPACEBAR to jump.",{font: "30px Arial", fill: "yellow"});
+  game.input.keyboard.addKey(Phaser.Keyboard.ENTER).onDown.add(start);
+}
+
 function restart_game () {
   game.paused = false;
   stars = []; // reset stars to an empty array
+  pipes = []; // reset pipes to an empty array to stop the accumulation of pipes
   backgroundmusic.destroy();
   game.cache.removeSound('backgroundmusic'); // completely stops current music
   game.state.restart();
@@ -170,7 +236,7 @@ function clickHandler(event) {
 }
 
 function changeScore() {
-	score = score + 1;
+	score ++; // increase score by 1
 	labelScore.setText(score.toString());
 }
 
@@ -203,7 +269,7 @@ function generatePipe() {
         addPipeBlock(width, y);
     }
     y = gapStart + gapSize + pipeEndHeight;
-    addStar(width, gapStart + gapSize - (gapSize/2));
+    addStar(width, gapStart + gapSize - (gapSize/2)); // add star in between two pipe ends
 }
 
 function addPipeBlock(x, y) {
