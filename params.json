@@ -1,0 +1,6 @@
+{
+  "name": "Webapp-flappy",
+  "tagline": "A complete and ready for the world flappy bird game and web application",
+  "body": "Welcome to my Flappy batman project homepage! Got to either https://nharikrishnan22.github.io/webapp-flappy/pages/ or https://nharikrishnan22.github.io/webapp-flappy/pages/example.html to play the game. Press SPACE to go up and avoid the incoming pipes. Earn points by collecting stars and you can also click the screen to pause the game. You can choose two difficulty settings - easy or normal. Enjoy!\r\n\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
